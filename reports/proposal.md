@@ -1,85 +1,98 @@
-Reducing Hallucinations in Abstractive Summarization via Verifier-Reranking
+# Reducing Hallucinations in Abstractive Summarization via Verifier-Reranking
 
-Proposal Abstract
+## Overview
+Abstractive summarizers often generate fluent but unsupported statements, limiting real-world utility. This project targets **factuality** in news summarization using a simple, reproducible pipeline:
 
-Abstract summarizers often produce fluent but unsupported statements that limit practical use. This project targets factuality for news summarization with a simple, reproducible approach. I will fine-tune BART-base on the public CNN/DailyMail dataset. At inference, I will generate K candidate summaries per article and rerank them using an automatic factuality score. Using FactCC as the primary verifier and reporting QAGS as a secondary check. If reranking harms ROUGE, I will test constrained decoding that favors copying from the source as a fallback. Implementations rely on Hugging Face Transformers, Datasets, and Evaluate, and will be cited.
+- **Model**: Fine-tune `facebook/bart-base` on CNN/DailyMail.
+- **Decoding**: Generate *K* candidate summaries per article.
+- **Reranking**: Score candidates with an automatic factuality verifier and select the top-scoring summary.
+- **Verifiers**: Use **FactCC** as the primary verifier; report **QAGS** as a secondary check.
+- **Fallback**: If reranking harms ROUGE beyond the threshold (see Success Criteria), test copy-favoring constrained decoding.
+- **Stack**: Hugging Face **Transformers**, **Datasets**, and **Evaluate**.
 
-Dataset
+The aim is to reduce hallucinations with minimal engineering and clear, testable metrics.
 
-Dataset: CNN/DailyMail
+---
 
-Hugging Face ID: ccdv/cnn_dailymail, config 3.0.0
+## Dataset
+- **Name**: CNN/DailyMail  
+- **Hugging Face ID**: `ccdv/cnn_dailymail` (config **3.0.0**)  
+- **Splits**: Standard train / validation / test
 
-Splits: Using standard train/validation/test splits.
+---
 
-Metrics and Success
+## Evaluation & Success Criteria
 
-Quality: ROUGE-1/2/L and BERTScore on validation and test.
+**Quality metrics (validation & test):**
+- ROUGE-1 / ROUGE-2 / ROUGE-L
+- BERTScore
 
-Factuality: FactCC (primary) and QAGS on validation.
+**Factuality metrics (validation):**
+- **FactCC** (primary)
+- **QAGS** (secondary/diagnostic)
 
-Human check: 50 examples with an error taxonomy.
+**Human study (validation subset):**
+- 50 articles with an error taxonomy (e.g., entity errors, temporal/causal errors, unsupported claims, contradictions).
 
-Success criterion: $\ge+2.0$ FactCC points over the BART baseline on validation with $\le1.0$ ROUGE-L drop.
+**Success criterion (validation):**
+- **Factuality gain**: `Δ FactCC ≥ +2.0` points over a BART-base baseline  
+- **Quality retention**: `|Δ ROUGE-L| ≤ 1.0` absolute drop
 
-Risks / Challenges
+If the criterion is not met, enable constrained decoding that biases copying from the source and re-evaluate.
 
-Verifier may mis-score paraphrases; mitigate with human spot checks. Compute limits handled by base-size models and modest K. If reranking underperforms, tune decoding and report ablations.
+---
 
-Why this matters
+## Method
 
-Abstractive models often sound good but insert mistakes. Picking the most factual draft reduces those hallucinations without heavy engineering.
+1. **Fine-tuning**
+   - Model: `facebook/bart-base`
+   - Data: `ccdv/cnn_dailymail:3.0.0`
+   - Training details recorded in versioned config files (learning rate, batch size, max length, number of epochs, seed).
 
-This focused design addresses a known failure mode with minimal engineering and clear metrics. It fits the class scope, uses a single public dataset with stable splits, and supports deep analysis. I will release code, configs, and small data samples for reproducibility.
+2. **Candidate Generation**
+   - Produce *K* candidates per article (initially `K ∈ {4, 8}`).
+   - Explore beam search vs. nucleus sampling; log decoding params.
 
-Annotated Bibliography
+3. **Verifier-Reranking**
+   - Score each candidate with **FactCC**; pick the top-scoring candidate.
+   - Report **QAGS** as an auxiliary factuality check.
 
-This project is situated within a well-established body of research. The following papers provide the foundation for the baseline model, the verifier-reranking methodology, and the evaluation strategy.
+4. **Fallback: Constrained Decoding**
+   - If reranking materially hurts ROUGE beyond threshold, switch to constrained decoding that promotes source copying (e.g., lexically constrained decoding or penalties that reduce unsupported novel content).
 
-Paper
+5. **Ablations**
+   - No-rerank baseline (best-of-K by log-prob only).
+   - Rerank by **FactCC** vs. alternative factuality signals (e.g., AlignScore) for comparison.
+   - Beam vs. sampling; varying *K*.
+   - Length penalty sensitivity.
 
-Role in Project
+---
 
-BART (Lewis et al., 2020)
+## Risks & Mitigations
 
-Core Baseline Model. The summarizer we will fine-tune.
+- **Verifier mis-scores paraphrases**  
+  *Mitigation*: human spot checks on 50 examples; include an error taxonomy and reviewer agreement.
 
-FactCC (Kryściński et al., 2020)
+- **Compute constraints**  
+  *Mitigation*: use base-size models, modest *K*, mixed-precision training, gradient accumulation if needed.
 
-Core Verifier Model. The model we will use to score and rerank summaries.
+- **Reranking underperforms**  
+  *Mitigation*: tune decoding parameters, enable constrained decoding, and report ablations transparently.
 
-QAGS (Wang et al., 2020)
+---
 
-Core Evaluation Metric. Our secondary, qualitative check for factuality.
+## Why This Matters
+Abstractive systems can “sound right” while being wrong. Selecting the most factual candidate at inference time reduces hallucinations without heavy architectural changes, improving reliability for downstream users and decision-makers.
 
-Hallucination Survey (Ji et al., 2023)
+---
 
-Introduction / Motivation. Used to define the problem of-hallucination.
+## Reproducibility Plan
+- **Configs**: All training/decoding/reranking settings in versioned YAMLs.  
+- **Seeds**: Fixed random seeds; report ± std over three runs on validation.  
+- **Checkpoints**: Save and tag model and tokenizer versions.  
+- **Logs**: Persist metrics and artifacts (CSV/JSON).  
+- **Release**: Code, configs, and a small sample of preprocessed examples for end-to-end validation.
 
-AlignScore (Zha et al., 2023)
+---
 
-Related Work. A newer factuality metric to compare against.
-
-Unsupervised Reranking (Ravaut et al., 2023)
-
-Related Work. Contrasts our supervised verifier with unsupervised methods.
-
-SelfCheckGPT (Manakul et al., 2023)
-
-Related Work. An alternative "internal" (LLM-based) verifier.
-
-LoRA (Hu et al., 2021)
-
-Future Work. An optional method for efficiently fine-tuning larger models.
-
-Core References from Proposal
-
-BART: Lewis et al. (2020). BART: Denoising Sequence-to-Sequence Pre-training... (ACL Anthology)
-
-FactCC: Kryściński et al. (2020). Evaluating the Factual Consistency of Abstractive Text Summarization. (ACL Anthology)
-
-QAGS: Wang et al. (2020). Asking and Answering Questions to Evaluate the Factual Consistency of Summaries. (ACL Anthology
-
-PEGASUS: Zhang et al. (2020). PEGASUS: Pre-training with Extracted Gap-sentences for Abstractive Summarization. (ICML)
-
-BERT: Devlin et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers... (arXiv)
+## Repository Structure (planned)
