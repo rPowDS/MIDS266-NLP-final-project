@@ -36,15 +36,41 @@ Annotated Bibliography
 
 This project is situated within a well-established body of research. The following papers provide the foundation for the baseline model, the verifier-reranking methodology, and the evaluation strategy.
 
-| Paper | Role in Project |
-| BART (Lewis et al., 2020) | Core Baseline Model. The summarizer we will fine-tune. |
-| FactCC (Kryściński et al., 2020) | Core Verifier Model. The model we will use to score and rerank summaries. |
-| QAGS (Wang et al., 2020) | Core Evaluation Metric. Our secondary, qualitative check for factuality. |
-| Hallucination Survey (Ji et al., 2023) | Introduction / Motivation. Used to define the problem of hallucination. |
-| AlignScore (Zha et al., 2023) | Related Work. A newer factuality metric to compare against. |
-| Unsupervised Reranking (Ravaut et al., 2023) | Related Work. Contrasts our supervised verifier with unsupervised methods. |
-| SelfCheckGPT (Manakul et al., 2023) | Related Work. An alternative "internal" (LLM-based) verifier. |
-| LoRA (Hu et al., 2021) | Future Work. An optional method for efficiently fine-tuning larger models. |
+Paper
+
+Role in Project
+
+BART (Lewis et al., 2020)
+
+Core Baseline Model. The summarizer we will fine-tune.
+
+FactCC (Kryściński et al., 2020)
+
+Core Verifier Model. The model we will use to score and rerank summaries.
+
+QAGS (Wang et al., 2020)
+
+Core Evaluation Metric. Our secondary, qualitative check for factuality.
+
+Hallucination Survey (Ji et al., 2023)
+
+Introduction / Motivation. Used to define the problem of-hallucination.
+
+AlignScore (Zha et al., 2023)
+
+Related Work. A newer factuality metric to compare against.
+
+Unsupervised Reranking (Ravaut et al., 2023)
+
+Related Work. Contrasts our supervised verifier with unsupervised methods.
+
+SelfCheckGPT (Manakul et al., 2023)
+
+Related Work. An alternative "internal" (LLM-based) verifier.
+
+LoRA (Hu et al., 2021)
+
+Future Work. An optional method for efficiently fine-tuning larger models.
 
 Core References from Proposal
 
@@ -52,7 +78,7 @@ BART: Lewis et al. (2020). BART: Denoising Sequence-to-Sequence Pre-training... 
 
 FactCC: Kryściński et al. (2020). Evaluating the Factual Consistency of Abstractive Text Summarization. (ACL Anthology)
 
-QAGS: Wang et al. (2020). Asking and Answering Questions to Evaluate the Factual Consistency of Summaries. (ACL Anthology)
+QAGS: Wang et al. (2020). Asking and Answering Questions to Evaluate the Factual Consistency of Summaries. (ACL Anthology
 
 PEGASUS: Zhang et al. (2020). PEGASUS: Pre-training with Extracted Gap-sentences for Abstractive Summarization. (ICML)
 
