@@ -49,3 +49,15 @@ We first generate multiple summary candidates with a baseline BART model. Then, 
     ```
 
 ## Repository Structure
+
+
+## Core References
+
+This project is an implementation of a verifier-reranking pipeline and builds directly on the following foundational papers:
+
+-   **BART:** Lewis et al. (2020). *BART: Denoising Sequence-to-Sequence Pre-training...* 
+-   **FactCC:** Kryściński et al. (2020). *Evaluating the Factual Consistency of Abstractive Text Summarization.* 
+-   **QAGS:** Wang et al. (2020). *Asking and Answering Questions to Evaluate the Factual Consistency of Summaries.* 
+-   **Problem Context:** Ji et al. (2023). *A Survey on Hallucination in Large Language Models.*
+
+A full annotated bibliography and literature review can be found in the `reports/` directory.
