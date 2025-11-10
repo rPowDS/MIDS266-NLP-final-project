@@ -1,0 +1,8 @@
+{
+  "decoder": "top_p",
+  "top_p": 0.92,
+  "top_k": 0,
+  "num_beams": 1,
+  "k": 8,
+  "max_new_tokens": 128
+}

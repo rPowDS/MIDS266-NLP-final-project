@@ -1,0 +1,23 @@
+\documentclass[11pt]{article}
+\usepackage[review]{acl}
+\usepackage{times,latexsym,graphicx,amsmath,booktabs,url}
+\title{Verifier-Reranking for Factual Abstractive Summarization}
+\author{Hannibal}
+\date{}
+\begin{document}\maketitle
+\begin{abstract}
+We study verifier-reranking to reduce hallucinations in abstractive news summarization. A BART-base model is fine-tuned on CNN/DailyMail, generates $K$ candidates per article, and a factuality verifier (ALIGNSCORE) selects the most supported summary. We target $\ge$+2.0 FactCC points with $\le$1.0 ROUGE-L drop versus the baseline, validated by a 50-item human audit.
+\end{abstract}
+\section{Introduction}
+Neural summarizers produce fluent yet unsupported statements. We adopt a training-light pipeline: fine-tune BART-base; generate $K$ candidates; select by a factuality verifier. We adopt ALIGNSCORE as the primary verifier because it unifies alignment learning over millions of cross-task examples and scores via chunk--sentence mean-of-max \cite{alignscore}.
+\section{Background}
+ALIGNSCORE trains a unified alignment function over 4.7M examples from 7 tasks and computes a claim--context score by splitting the context into $\sim$350-token chunks and the claim into sentences; for each sentence it takes $\max_i p(y_{3\text{-way}}=\text{ALIGNED}\mid o'_i,l'_j)$, then averages over sentences (Eq.~\ref{eq:eq3}) \cite{alignscore}.
+\begin{equation}\label{eq:eq3}
+\mathrm{AlignScore}(o,l)=\frac{1}{|l'|}\sum_{j}\max_{i} p\!\left(y_{3\text{-way}}=\text{ALIGNED}\mid o'_i,l'_j\right).
+\end{equation}
+\section{Methods}
+% ... (fill with results once runs finish)
+\section{Evaluation}
+% ... automatic metrics + human audit
+\bibliographystyle{acl_natbib}\bibliography{refs}
+\end{document}

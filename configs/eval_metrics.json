@@ -1,0 +1,8 @@
+{
+  "metrics": [
+    "rouge",
+    "bertscore",
+    "factcc",
+    "alignscore"
+  ]
+}
