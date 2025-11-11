@@ -18,17 +18,15 @@ We first generate multiple summary candidates with a baseline BART model. Then, 
 
 - **Baseline fine-tuning:** We optimize `facebook/bart-base` on CNN/DailyMail using the cross-entropy loss described by Lewis et al. (2020):
 
-  $$
-    \mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)
-  $$
-
+ 
+     $$\mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)$$
 
   where $x$ is the article and $y_t$ are the reference highlight tokens.
 - **Verifier reranking:** Following the FactCC formulation (Kryściński et al., 2020), we score a candidate summary $s$ against article $a$ via sentence-level NLI entailment probabilities $p_{\text{entail}}(a_i, s_j)$:
 
-  $$
-    \text{score}(a, s) = \frac{1}{|s|} \sum_{j=1}^{|s|} \max_i p_{\text{entail}}(a_i, s_j)
-  $$
+
+   $$\text{score}(a, s) = \frac{1}{|s|} \sum_{j=1}^{|s|} \max_i p_{\text{entail}}(a_i, s_j)$$
+
   
   Higher scores indicate better factual alignment; alternate verifiers such as QAGS (Wang et al., 2020) and AlignScore (Zha et al., 2023) are evaluated similarly in notebook `05_verify_and_rerank.ipynb`.
 
