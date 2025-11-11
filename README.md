@@ -80,7 +80,7 @@ Because the dataset is already tokenized and cleaned, we typically cache the unt
 - `configs/`, `results/`, `runs/` — created by the notebooks to track experiment settings, cached samples, and model outputs; `.gitkeep` files keep these directories under version control.
 - `requirements.txt` — pinned dependency list used for grading and reproduction.
 - `README.md` — project overview, dataset details, and usage notes.
-- ├── configs
+- ''├── configs
 ├── data
 │   ├── interim
 │   ├── processed
@@ -102,7 +102,7 @@ Because the dataset is already tokenized and cleaned, we typically cache the unt
 │   └── proposal.md
 ├── requirements.txt
 ├── results
-└── runs
+└── runs''
 
 ## Core References
 
