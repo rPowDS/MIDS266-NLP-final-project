@@ -80,6 +80,29 @@ Because the dataset is already tokenized and cleaned, we typically cache the unt
 - `configs/`, `results/`, `runs/` — created by the notebooks to track experiment settings, cached samples, and model outputs; `.gitkeep` files keep these directories under version control.
 - `requirements.txt` — pinned dependency list used for grading and reproduction.
 - `README.md` — project overview, dataset details, and usage notes.
+- ├── configs
+├── data
+│   ├── interim
+│   ├── processed
+│   └── raw
+├── notebooks
+│   ├── 00_setup_and_checks.ipynb
+│   ├── 01_data_and_baseline.ipynb
+│   ├── 03_train_baseline_bart.ipynb
+│   ├── 04_generate_k_candidates.ipynb
+│   ├── 05_verify_and_rerank.ipynb
+│   └── EDA
+├── README.md
+├── reports
+│   ├── 2005.11401v4.pdf
+│   ├── 2101.03961v3.pdf
+│   ├── 2305.16739v1-6.pdf
+│   ├── 2309.07864v3.pdf
+│   ├── 2411.02433v3.pdf
+│   └── proposal.md
+├── requirements.txt
+├── results
+└── runs
 
 ## Core References
 
