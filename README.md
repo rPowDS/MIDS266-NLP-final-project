@@ -22,22 +22,26 @@ Large-scale language models like BART, while powerful, often "hallucinate" or ge
 
 ##  Methodology & Architecture
 
-Our approach follows a **"Generate-then-Verify"** pipeline.
+The project approach follows a **"Generate-then-Verify"** pipeline.
 
 **[Insert Architecture Diagram Here]**
 *(Article $\to$ BART Baseline $\to$ K Candidates $\to$ Verifier Scoring $\to$ Reranker $\to$ Final Summary)*
 
 ### Method Overview
 
-* **Baseline Fine-tuning:** We optimize `facebook/bart-base` on CNN/DailyMail using the standard cross-entropy loss described by Lewis et al. (2020):
+* **Baseline Fine-tuning:** by optimizing `facebook/bart-base` on CNN/DailyMail using the standard cross-entropy loss described by Lewis et al. (2020):
 
-    $$\mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)$$
+    $$
+     \mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)
+    $$
 
     where $x$ is the article and $y_t$ are the reference highlight tokens.
 
 * **Verifier Reranking:** Following the FactCC formulation (Kryściński et al., 2020), we score a candidate summary $s$ against article $a$ via sentence-level NLI entailment probabilities $p_{\text{entail}}(a_i, s_j)$:
 
-    $$\text{score}(a, s) = \frac{1}{|s|} \sum_{j=1}^{|s|} \max_i p_{\text{entail}}(a_i, s_j)$$
+    $$
+    \text{score}(a, s) = \frac{1}{|s|} \sum_{j=1}^{|s|} \max_i p_{\text{entail}}(a_i, s_j)
+    $$
 
     Higher scores indicate better factual alignment. We evaluated this using both a specialized verifier (**FactCC**) and a general logic verifier (**RoBERTa-NLI**).
 
@@ -76,7 +80,7 @@ The project is organized into sequential notebooks that represent the full exper
 
 ## Dataset & Models
 
-We rely on the **CNN/DailyMail** summarization corpus hosted on Hugging Face. We use version `3.0.0`, which contains the non-anonymized data.
+ **CNN/DailyMail** summarization corpus hosted on Hugging Face. Using version `3.0.0`, which contains the non-anonymized data.
 
 * **Dataset Card:** [`ccdv/cnn_dailymail`](https://huggingface.co/datasets/ccdv/cnn_dailymail)
 * **Baseline Model:** [`facebook/bart-base`](https://huggingface.co/facebook/bart-base)
@@ -87,7 +91,7 @@ To download the data within a Python environment:
 
 from datasets import load_dataset
 
-# Download version 3.0.0 (non-anonymized)
+# Download version 3.0.0 
 dataset = load_dataset("cnn_dailymail", "3.0.0")
 
 ---
@@ -106,17 +110,17 @@ This project followed an iterative experimental design:
 
 ##  Core References
 
-This project is situated within a well-established body of research. The following papers provide the foundation for the baseline model, the verifier-reranking methodology, and the evaluation strategy.
+The following papers provide the foundation for the baseline model, the verifier-reranking methodology, and the evaluation strategy.
 
-| Paper | Role in Project |
-| :--- | :--- |
-| **BART** (Lewis et al., 2020) | **Core Baseline Model.** The summarizer we fine-tuned in Notebook 02. |
-| **FactCC** (Kryściński et al., 2020) | **Core Verifier Model.** The primary model used to score and rerank summaries in Notebook 04. |
-| **QAGS** (Wang et al., 2020) | **Core Evaluation Metric.** Our conceptual basis for checking consistency via question answering. |
-| **Hallucination Survey** (Ji et al., 2023) | **Introduction / Motivation.** Used to define the problem of hallucination in abstractive summarization. |
-| **AlignScore** (Zha et al., 2023) | **Related Work.** Comparison metric for our NLI-based verification approach. |
-| **Unsupervised Reranking** (Ravaut et al., 2023) | **Related Work.** Contrasts our *supervised* verifier with *unsupervised* methods. |
-| **SelfCheckGPT** (Manakul et al., 2023) | **Related Work.** An alternative "internal" (LLM-based) verifier. |
-| **LoRA** (Hu et al., 2021) | **Future Work.** An optional method for efficiently fine-tuning larger models. |
+| Paper | Role in Project | Status / Notes |
+| :--- | :--- | :--- |
+| **BART** (Lewis et al., 2020) | **Core Baseline** | **Implemented.** Fine-tuned `bart-base` on CNN/DM (Notebook 02). |
+| **FactCC** (Kryściński et al., 2020) | **Core Verifier** | **Implemented.** Used for scoring & reranking (Notebook 04). |
+| **RoBERTa** (Liu et al., 2019) | **Secondary Verifier** | **Implemented.** Used `roberta-large-mnli` as a proxy for General Logic verification. |
+| **Hallucination Survey** (Ji et al., 2023) | **Problem Def.** | Used to define the taxonomy of hallucination errors. |
+| **AlignScore** (Zha et al., 2023) | **Comparison** | **Reference Only.** Cited as a state-of-the-art alignment metric; we compared against NLI instead due to technical constraints. |
+| **QAGS** (Wang et al., 2020) | **Conceptual Basis** | **Reference Only.** Establishes the framework for consistency checking, though we opted for NLI over QA. |
+| **SelfCheckGPT** (Manakul et al., 2023) | **Related Work** | Cited to contrast our *supervised* pipeline with *zero-shot* methods. |
+| **LoRA** (Hu et al., 2021) | **Future Work** | Cited as a potential method for scaling this pipeline to LLMs. |
 
 ---
