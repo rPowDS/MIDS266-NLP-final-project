@@ -1,0 +1,35 @@
+{
+  "model_name": "facebook/bart-base",
+  "dataset_name": "cnn_dailymail",
+  "dataset_config": "3.0.0",
+  "train_subset_size": 20000,
+  "val_subset_size": 2000,
+  "seed": 42,
+  "text_fields": {
+    "source": "article",
+    "summary": "highlights"
+  },
+  "tokenization": {
+    "max_source_len": 1024,
+    "max_target_len": 128
+  },
+  "train": {
+    "output_dir": "/content/drive/MyDrive/w266_project_final/models/bart_base_cnn_dm_20k",
+    "epochs": 3,
+    "batch_size": 8,
+    "grad_accum": 2,
+    "lr": 5e-05,
+    "warmup_ratio": 0.03
+  },
+  "generate": {
+    "num_beams": 5,
+    "num_return_sequences": 5,
+    "max_new_tokens": 128,
+    "min_new_tokens": 10
+  },
+  "verifier": {
+    "hf_id": "manueldeprada/FactCC",
+    "correct_label_id": 1,
+    "chunk_size": 350
+  }
+}

@@ -1,0 +1,4 @@
+Model,rouge1,rouge2,rougeL,rougeLsum,Avg FactCC
+Baseline,41.12,18.56,28.09,38.06,0.42680796887936984
+FactCC Rerank,40.74,18.36,27.92,37.77,0.6608883371540994
+NLI Rerank,40.78,18.48,28.08,37.82,N/A
