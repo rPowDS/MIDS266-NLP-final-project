@@ -3,78 +3,175 @@
 **Course:** W266 NLP (UC Berkeley MIDS)  
 **Student:** Ryan Powers  
 
+This repository contains my W266 final project on reducing factual hallucinations in abstractive summarization using a **generate-then-verify** pipeline. I fine-tune a BART-base summarizer on CNN/DailyMail, generate multiple candidate summaries, and rerank them with factuality verifiers (FactCC and RoBERTa-MNLI). The goal is to improve factual consistency **without** retraining a larger model.
 
-This project demonstrates a practical pipeline for reducing factual hallucinations in abstractive summarization. By generating multiple candidate summaries with a fine-tuned BART model and reranking them using specialized verifier models, the project achieves significant gains in factual consistency without sacrificing summary fluency.
-
----
-
-##  Problem Statement & Approach
-
-Large-scale language models like BART, while powerful, often "hallucinate" or generate text that is not factually supported by the source document. This project investigates whether a two-stage "generate-then-verify" pipeline can improve the factual consistency of summaries.:
-
-1.  **Generate:** Using a fine-tuned BART model to generate $K=5$ candidate summaries via Beam Search.
-2.  **Verify:** Score each candidate using two distinct verifier architectures:
-    * **FactCC:** A BERT-based model trained specifically on summarization consistency.
-    * **RoBERTa-NLI:** A general-purpose logic model for checking textual entailment.
-3.  **Rerank:** Select the candidate with the highest verifier score as the final output.
+The twist: by automatic metrics, the method looks very successful, but a 50-example human audit shows that those gains **do not translate** into better human-perceived factuality.
 
 ---
 
-##  Methodology & Architecture
+## Problem Statement & Approach
 
-The project approach follows a **"Generate-then-Verify"** pipeline.
+Large pretrained sequence-to-sequence models like **BART** achieve strong ROUGE scores on CNN/DailyMail but are known to hallucinate—producing fluent text that is not fully grounded in the source article (Ji et al., 2023). This is especially problematic for news summarization, where factual accuracy is critical.
 
-**[Insert Architecture Diagram Here]**
-*(Article $\to$ BART Baseline $\to$ K Candidates $\to$ Verifier Scoring $\to$ Reranker $\to$ Final Summary)*
+My question:
 
-### Method Overview
+> **Can I reduce hallucinations at inference time by generating multiple summaries and letting a verifier pick the most factual one?**
 
-* **Baseline Fine-tuning:** by optimizing `facebook/bart-base` on CNN/DailyMail using the standard cross-entropy loss described by Lewis et al. (2020):
+I frame this as a **verifier-reranking** problem:
 
-    $$
-     \mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)
-    $$
+1. **Generate**: Fine-tune `facebook/bart-base` on CNN/DailyMail v3.0.0, then generate **K = 5** candidate summaries per article with beam search.
+2. **Verify**: Score each candidate with:
+   - **FactCC** (Kryściński et al., 2020) – a summarization-specific factuality classifier.
+   - **RoBERTa-MNLI** (Liu et al., 2019) – a general NLI model used as a secondary verifier.
+3. **Rerank**: Select the candidate with the highest verifier score as the final summary.
 
-    where $x$ is the article and $y_t$ are the reference highlight tokens.
-
-* **Verifier Reranking:** Following the FactCC formulation (Kryściński et al., 2020), we score a candidate summary $s$ against article $a$ via sentence-level NLI entailment probabilities $p_{\text{entail}}(a_i, s_j)$:
-
-    $$
-    \text{score}(a, s) = \frac{1}{|s|} \sum_{j=1}^{|s|} \max_i p_{\text{entail}}(a_i, s_j)
-    $$
-
-    Higher scores indicate better factual alignment. We evaluated this using both a specialized verifier (**FactCC**) and a general logic verifier (**RoBERTa-NLI**).
+This design is inspired by FactCC and later reranking work (e.g., Ravaut et al., 2023) and matches techniques discussed in class on factuality and evaluation.
 
 ---
 
+## Methodology & Architecture
 
-##  Key Findings 
+The project follows a **Generate → Verify → Rerank** pipeline:
 
-The experiments on the CNN/DailyMail validation set (20k training subset) show that reranking significantly improves factuality.
+**(Article)** → **BART Baseline** → **K=5 Candidates** → **FactCC / NLI Scoring** → **Reranker** → **Final Summary**
 
-| Strategy | Factuality Score (FactCC) | Fluency (ROUGE-L) | Impact |
-| :--- | :--- | :--- | :--- |
-| **Baseline (BART)** | 0.43 | **29.30** | High fluency, but frequent hallucinations. |
-| **FactCC Rerank** | **0.66** (+53%) | 29.00 (-0.3) | **Massive factuality gain** with negligible quality loss. |
-| **NLI Rerank** | N/A (0.27 NLI Score) | 28.99 | Robustness check; confirms the method works across architectures. |
+> **Reranking Objective**
 
-**Human Audit:** A manual review of 50 samples confirmed that the reranker fixed hallucinations in **X%** of disagreement cases. *(Update this X% after your audit)*.
+Let \(a\) be the article and \(C = \{c_1, \ldots, c_K\}\) the set of beam candidates.  
+The reranker selects:
+
+\[
+c^* = \argmax_{c_i \in C} \text{score}_{\text{FactCC}}(a, c_i)
+\]
+
+where
+
+\[
+\text{score}_{\text{FactCC}}(a, c) = P(\text{Consistent} \mid a, c)
+\]
+
+is the probability assigned by the FactCC classifier that summary \(c\) is factually consistent with article \(a\). For the NLI baseline I analogously use:
+
+\[
+\text{score}_{\text{NLI}}(a, c) = P(\text{Entailment} \mid a, c)
+\]
+
+from RoBERTa-MNLI with \(a\) as premise and \(c\) as hypothesis.  
+These are exactly the scores produced by the Hugging Face `manueldeprada/FactCC` and `roberta-large-mnli` models in my code.   
+
+> **Training Objective (Baseline BART)**
+
+I fine-tune BART-base with the standard cross-entropy loss:
+
+\[
+\mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_\theta(y_t \mid y_{<t}, x)
+\]
+
+where \(x\) is the source article and \(y_t\) are tokens of the gold summary. This is the same objective used in the original BART paper (Lewis et al., 2020).
+
+> **Evaluation Metric (ROUGE-L)**
+
+For summary quality I report ROUGE-L F-score based on the longest common subsequence (LCS):
+
+\[
+\text{ROUGE-L} = \frac{(1 + \beta^2) R_{\text{lcs}} P_{\text{lcs}}}{R_{\text{lcs}} + \beta^2 P_{\text{lcs}}}
+\]
+
+where
+
+\[
+R_{\text{lcs}} = \frac{\text{LCS}(X, Y)}{|X|}, \quad
+P_{\text{lcs}} = \frac{\text{LCS}(X, Y)}{|Y|}
+\]
+
+for reference summary \(X\) and candidate \(Y\).
+
+> **Statistical Testing**
+
+Following standard NLP evaluation practice (e.g., Efron & Tibshirani, 1994; Dror et al., 2018), I use:
+
+- **Approximate randomization test (N = 10,000 permutations)** for FactCC deltas.
+- **Paired bootstrap (N = 1,000 resamples)** for ROUGE-L differences.
+
+I reduced the bootstrap iterations from 10,000 to 1,000 for runtime reasons; 1,000 resamples is commonly used in NLP and provides stable confidence intervals for this scale of test set. The code and configuration explicitly log these choices.   
 
 ---
 
-##  Repository Structure & Notebooks
+## Key Results
 
-The project is organized into sequential notebooks that represent the full experimental pipeline.
+All main numbers are from the **CNN/DailyMail test set (N = 11,490)**.   
 
-| Notebook | Role | Paper / Inspiration | Description |
-| :--- | :--- | :--- | :--- |
-| **`01_Setup_&_EDA.ipynb`** | Setup | *CNN/DM Analysis* | Project structure, dependency installation, and EDA on token lengths. |
-| **`02_Baseline_BART.ipynb`** | **Training** | **Lewis et al. (2020)** | Fine-tuning `facebook/bart-base` on a 20k subset of CNN/DailyMail. |
-| **`02a_Analyze_Baseline.ipynb`** | Analysis | *Standard Practice* | Loss curves and qualitative checks of the baseline model. |
-| **`03_Generate_Candidates.ipynb`** | **Inference** | *Beam Search* | Generating $K=5$ candidate summaries for 2,000 validation articles. |
-| **`04_Rerank_&_Score.ipynb`** | **Scoring** | **Kryściński et al. (2020)** | Scoring all candidates using [FactCC](https://huggingface.co/manueldeprada/FactCC) and [RoBERTa-NLI](https://huggingface.co/roberta-large-mnli). |
-| **`05_Analyze_&_Visualize.ipynb`** | Analysis | *Comparative Study* | Generating the final "Money Table" and ROUGE comparisons. |
-| **`06_Human_Audit.ipynb`** | Audit | *Qualitative Review* | Preparing and analyzing the 50-sample human evaluation set. |
+### Automatic Metrics (Test Set)
+
+| System         | ROUGE-1 | ROUGE-2 | ROUGE-L | BERTScore F1 | FactCC |
+|----------------|---------|---------|---------|--------------|--------|
+| LEAD-3         | 39.91   | 17.38   | 24.91   | —            | —      |
+| BART Baseline  | 41.12   | 18.56   | 28.09   | 0.882        | 0.427  |
+| FactCC Rerank  | 40.74   | 18.36   | 27.92   | 0.882        | **0.661** |
+| NLI Rerank     | 40.78   | 18.48   | 28.08   | —            | —      |
+
+- **FactCC improvement:** 0.427 → 0.661 (**+0.234**, +54.8% relative)  
+- **ROUGE-L change:** 28.09 → 27.92 (**−0.17**, within my ≤1.0 tolerance)  
+- **BERTScore:** 0.882 vs 0.882 on a 1,000‑example sample → semantic similarity preserved.   
+
+**Significance tests:**
+
+- Approximate randomization (FactCC): p < 0.0001 → **highly significant**.  
+- Paired bootstrap, N=1,000 (ROUGE-L): 95% CI includes 0 → **no significant change**.
+
+By automatic metrics alone, verifier-reranking “succeeds”: factuality up, ROUGE preserved.
+
+### Human Evaluation (N = 50)
+
+I conducted a 50-example human audit (single annotator, error taxonomy from Ji et al., 2023) on stratified samples (30 “disagreement” cases where reranking changed the summary, 20 “agreement” controls).   
+
+**Overall preference:**
+
+| Preference          | Count | Percentage |
+|---------------------|-------|------------|
+| Tie                 | 27    | 54%        |
+| Baseline preferred  | 14    | 28%        |
+| Reranked preferred  | 9     | 18%        |
+
+**Error-level analysis:**
+
+- Cases where reranker **fixed** a hallucination: **1**  
+- Cases where reranker **introduced** a new hallucination: **3**  
+- Cases where **both** summaries hallucinated: **16** (32%)  
+
+Net effect: the reranker slightly **hurts** human-judged factuality, despite large apparent FactCC gains. This is the central “metrics vs humans” disconnect in the project.   
+
+---
+
+## Repository Structure & Notebooks
+
+The repo is organized as a linear experimental pipeline:
+
+| Notebook                            | Role             | Description |
+|------------------------------------|------------------|-------------|
+| `01_Setup_&_EDA.ipynb`             | Setup / EDA      | Dependency installation, project config, and CNN/DM length analysis. |
+| `02_Baseline_BART.ipynb`           | Training         | Fine-tunes `facebook/bart-base` on 20k CNN/DM examples (3 epochs). |
+| `02a_Analyze_Baseline_Run.ipynb`   | Baseline analysis| Loss curves, qualitative baseline inspection. |
+| `03_Generate_Candidate.ipynb`      | Candidate generation | Generates K=5 beam candidates for validation / analysis sets. |
+| `04_Rerank_&_Score.ipynb`          | Verifier scoring | Scores all candidates with FactCC and RoBERTa-MNLI and performs reranking. |
+| `05_Analysis.ipynb`                | Metric analysis  | Produces main result tables, K-ablation, metric correlations and plots. |
+| `06_Human_Audit_Prep.ipynb`        | Human eval setup | Prepares 50-example audit CSV and aggregates error labels. |
+| `07_Final_Test.ipynb`              | Full test run    | Runs reranking on the full CNN/DM test set (11,490 examples). |
+| `08_Evaluation_&_Statistics.ipynb` | Statistics       | Randomization test, bootstrap CIs, and final “money tables.” |
+| `Final_Plots.ipynb`                | Visualization    | Generates production-quality figures used in the report. |
+
+Each stage saves intermediate JSONL/CSV files so results are reproducible and traceable.
+
+---
+
+## Dataset & Models
+
+- **Dataset:** CNN/DailyMail summarization corpus via Hugging Face, config `3.0.0` (non-anonymized).  [oai_citation:13‡Hugging Face](https://huggingface.co/datasets/abisee/cnn_dailymail?utm_source=chatgpt.com)  
+  - HF dataset card: `ccdv/cnn_dailymail`
+- **Summarizer:** `facebook/bart-base` fine-tuned on 20k CNN/DM training examples.
+- **Verifiers:**
+  - FactCC: `manueldeprada/FactCC` (implementation of Kryściński et al., 2020).  
+  - NLI: `roberta-large-mnli` (Liu et al., 2019). Originally, AlignScore (Zha et al., 2023) was cited as a state-of-the-art alignment metric; we compared against NLI instead due to technical constraints. 
 
 ---
 
