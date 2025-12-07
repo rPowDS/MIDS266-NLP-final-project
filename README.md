@@ -37,24 +37,24 @@ The project follows a **Generate → Verify → Rerank** pipeline:
 
 > **Reranking Objective**
 
-Let \(a\) be the article and \(C = \{c_1, \ldots, c_K\}\) the set of beam candidates.  
+Let $a$ be the article and $C = \{c_1, \ldots, c_K\}$ the set of beam candidates.  
 The reranker selects:
 
-\[
+$$
 c^* = \argmax_{c_i \in C} \text{score}_{\text{FactCC}}(a, c_i)
-\]
+$$
 
 where
 
-\[
+$$
 \text{score}_{\text{FactCC}}(a, c) = P(\text{Consistent} \mid a, c)
-\]
+$$
 
-is the probability assigned by the FactCC classifier that summary \(c\) is factually consistent with article \(a\). For the NLI baseline I analogously use:
+For the NLI baseline:
 
-\[
+$$
 \text{score}_{\text{NLI}}(a, c) = P(\text{Entailment} \mid a, c)
-\]
+$$
 
 from RoBERTa-MNLI with \(a\) as premise and \(c\) as hypothesis.  
 These are exactly the scores produced by the Hugging Face `manueldeprada/FactCC` and `roberta-large-mnli` models in my code.   
