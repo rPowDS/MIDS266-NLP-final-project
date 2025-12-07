@@ -166,17 +166,6 @@ Each stage saves intermediate JSONL/CSV files so results are reproducible and tr
 
 ## Dataset & Models
 
-- **Dataset:** CNN/DailyMail summarization corpus via Hugging Face, config `3.0.0` (non-anonymized).  [oai_citation:13‡Hugging Face](https://huggingface.co/datasets/abisee/cnn_dailymail?utm_source=chatgpt.com)  
-  - HF dataset card: `ccdv/cnn_dailymail`
-- **Summarizer:** `facebook/bart-base` fine-tuned on 20k CNN/DM training examples.
-- **Verifiers:**
-  - FactCC: `manueldeprada/FactCC` (implementation of Kryściński et al., 2020).  
-  - NLI: `roberta-large-mnli` (Liu et al., 2019). Originally, AlignScore (Zha et al., 2023) was cited as a state-of-the-art alignment metric; we compared against NLI instead due to technical constraints. 
-
----
-
-## Dataset & Models
-
  **CNN/DailyMail** summarization corpus hosted on Hugging Face. Using version `3.0.0`, which contains the non-anonymized data.
 
 * **Dataset Card:** [`ccdv/cnn_dailymail`](https://huggingface.co/datasets/ccdv/cnn_dailymail)
