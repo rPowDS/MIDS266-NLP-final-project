@@ -61,13 +61,17 @@ These are exactly the scores produced by the Hugging Face `manueldeprada/FactCC`
 
 > **Training Objective (Baseline BART)**
 
-I fine-tune BART-base with the standard cross-entropy loss:
+I fine-tune BART-base with the standard cross-entropy loss used for sequence-to-sequence models:
 
 $$
 \mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)
 $$
 
-where $$x$$ is the source article and $$y_t$$ are tokens of the gold summary. This is the same objective used in the original BART paper (Lewis et al., 2020).
+where:
+	•	$x$ = source article
+	•	$y_t$ = the $t$-th token of the gold summary
+
+This is the same objective used in the original BART paper (Lewis et al., 2020).
 
 > **Evaluation Metric (ROUGE-L)**
 
