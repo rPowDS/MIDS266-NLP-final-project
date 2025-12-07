@@ -22,10 +22,21 @@ Large-scale language models like BART, while powerful, often "hallucinate" or ge
 
 ##  Methodology & Architecture
 
-The project approach follows a **"Generate-then-Verify"** pipeline.
+The project approach follows a **"Generate-then-Verify"** pipeline, consisting of two main phases: training and inference/reranking.
 
-**[Insert Architecture Diagram Here]**
-*(Article $\to$ BART Baseline $\to$ K Candidates $\to$ Verifier Scoring $\to$ Reranker $\to$ Final Summary)*
+![Project Architecture](figs/Enhanced_Architecture%20_Diagram.png)
+
+**Training Phase:**
+- Input articles and reference summaries from CNN/DailyMail are used to fine-tune a BART encoder-decoder model
+- The model is trained using teacher forcing with cross-entropy loss
+- Output: A fine-tuned BART model optimized for abstractive summarization
+
+**Inference & Reranking Phase:**
+- The fine-tuned BART generates K=5 candidate summaries using beam search
+- Each candidate is scored by two verifier models:
+  - **FactCC Verifier**: A specialized model for factual consistency checking
+  - **NLI-RoBERTa Verifier**: A general-purpose natural language inference model
+- The candidate with the highest combined verifier score is selected as the final summary
 
 ### Method Overview
 
@@ -122,5 +133,14 @@ The following papers provide the foundation for the baseline model, the verifier
 | **QAGS** (Wang et al., 2020) | **Conceptual Basis** | **Reference Only.** Establishes the framework for consistency checking, though we opted for NLI over QA. |
 | **SelfCheckGPT** (Manakul et al., 2023) | **Related Work** | Cited to contrast our *supervised* pipeline with *zero-shot* methods. |
 | **LoRA** (Hu et al., 2021) | **Future Work** | Cited as a potential method for scaling this pipeline to LLMs. |
+
+---
+
+## Final Submission Materials
+
+The final paper and presentation materials are located in the [`submission/`](submission/) directory:
+
+- **Final Paper**: [`submission/final_paper.pdf`](submission/final_paper.pdf)
+- **Presentation**: [`submission/presentation.pptx`](submission/presentation.pptx)
 
 ---
