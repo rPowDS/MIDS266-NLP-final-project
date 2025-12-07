@@ -67,7 +67,7 @@ $$
 \mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_\theta(y_t \mid y_{<t}, x)
 $$
 
-where \(x\) is the source article and \(y_t\) are tokens of the gold summary. This is the same objective used in the original BART paper (Lewis et al., 2020).
+where $$x$$ is the source article and $$y_t$$ are tokens of the gold summary. This is the same objective used in the original BART paper (Lewis et al., 2020).
 
 > **Evaluation Metric (ROUGE-L)**
 
