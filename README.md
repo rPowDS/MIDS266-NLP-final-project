@@ -64,7 +64,7 @@ These are exactly the scores produced by the Hugging Face `manueldeprada/FactCC`
 I fine-tune BART-base with the standard cross-entropy loss:
 
 $$
-\mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_\theta(y_t \mid y_{<t}, x)
+\mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)
 $$
 
 where $$x$$ is the source article and $$y_t$$ are tokens of the gold summary. This is the same objective used in the original BART paper (Lewis et al., 2020).
