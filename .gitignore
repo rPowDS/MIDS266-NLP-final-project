@@ -1,0 +1,59 @@
+# Assessment files (omit from repository)
+PROJECT_ASSESSMENT.md
+PROJECT_AUDIT.md
+../PROJECT_ASSESSMENT.md
+../PROJECT_AUDIT.md
+
+# Large model files (too big for GitHub)
+models/
+*.pth
+*.pt
+*.bin
+*.safetensors
+
+# Data cache and snapshots (can be regenerated)
+data/hf_cache/
+data/snapshots/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Environment files
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+*.lock
+
+# Output files (optional - uncomment if you want to exclude large outputs)
+# outputs/*.jsonl
+# outputs/*.xlsx
+
+# Keep outputs directory structure but exclude very large files
+outputs/*.jsonl
+outputs/*.xlsx
+
