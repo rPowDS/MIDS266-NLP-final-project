@@ -63,9 +63,9 @@ These are exactly the scores produced by the Hugging Face `manueldeprada/FactCC`
 
 I fine-tune BART-base with the standard cross-entropy loss:
 
-\[
+$$
 \mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_\theta(y_t \mid y_{<t}, x)
-\]
+$$
 
 where \(x\) is the source article and \(y_t\) are tokens of the gold summary. This is the same objective used in the original BART paper (Lewis et al., 2020).
 
@@ -73,16 +73,16 @@ where \(x\) is the source article and \(y_t\) are tokens of the gold summary. Th
 
 For summary quality I report ROUGE-L F-score based on the longest common subsequence (LCS):
 
-\[
+$$
 \text{ROUGE-L} = \frac{(1 + \beta^2) R_{\text{lcs}} P_{\text{lcs}}}{R_{\text{lcs}} + \beta^2 P_{\text{lcs}}}
-\]
+$$
 
 where
 
-\[
+$$
 R_{\text{lcs}} = \frac{\text{LCS}(X, Y)}{|X|}, \quad
 P_{\text{lcs}} = \frac{\text{LCS}(X, Y)}{|Y|}
-\]
+$$
 
 for reference summary \(X\) and candidate \(Y\).
 
