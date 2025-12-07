@@ -64,7 +64,7 @@ These are exactly the scores produced by the Hugging Face `manueldeprada/FactCC`
 I fine-tune BART-base with the standard cross-entropy loss used for sequence-to-sequence models:
 
 $$
-\mathcal{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)
+\text{L}(\theta) = -\sum_{t=1}^{T} \log p_{\theta}(y_t \mid y_{<t}, x)
 $$
 
 where:
